@@ -13,18 +13,19 @@ public:
     ~TransportBarComponent() override = default;
 
     void paint (juce::Graphics& g) override;
+    void paintOverChildren (juce::Graphics& g) override;
     void resized() override;
     void timerCallback() override;
-    
+
     void setCurrentFileName (const juce::String& name);
     void setStatusMessage (const juce::String& msg);
-    
+
     // DAW sync display (VST only)
     void setDawSyncVisible (bool visible);
 
 private:
     AudioPreviewEngine& engine;
-    
+
     juce::TextButton playButton;
     juce::TextButton stopButton;
     juce::Slider gainSlider;
@@ -33,11 +34,11 @@ private:
     juce::Label fileNameLabel;
     juce::Label statusLabel;
     juce::Label dawSyncLabel;
-    
+
     // Playback progress
     juce::Slider progressSlider;
-    
+
     bool dawSyncVisible = false;
-    
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (TransportBarComponent)
 };

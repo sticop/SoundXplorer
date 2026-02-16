@@ -4,24 +4,24 @@
 TransportBarComponent::TransportBarComponent (AudioPreviewEngine& eng)
     : engine (eng)
 {
-    // Play button
-    playButton.setButtonText (juce::CharPointer_UTF8("\xe2\x96\xb6")); // play triangle
-    playButton.setColour (juce::TextButton::buttonColourId, juce::Colour (SoundXplorerLookAndFeel::bgLight));
+    // Play button — vector icon drawn in paintOverChildren
+    playButton.setButtonText ("");
+    playButton.setColour (juce::TextButton::buttonColourId, juce::Colour (SoundXplorerLookAndFeel::bgCard));
     playButton.onClick = [this] { engine.togglePlayPause(); };
     addAndMakeVisible (playButton);
-    
-    // Stop button
-    stopButton.setButtonText (juce::CharPointer_UTF8("\xe2\x96\xa0")); // stop square
-    stopButton.setColour (juce::TextButton::buttonColourId, juce::Colour (SoundXplorerLookAndFeel::bgLight));
+
+    // Stop button — vector icon drawn in paintOverChildren
+    stopButton.setButtonText ("");
+    stopButton.setColour (juce::TextButton::buttonColourId, juce::Colour (SoundXplorerLookAndFeel::bgCard));
     stopButton.onClick = [this] { engine.stop(); };
     addAndMakeVisible (stopButton);
-    
+
     // Progress slider
     progressSlider.setRange (0.0, 1.0, 0.001);
     progressSlider.setSliderStyle (juce::Slider::LinearHorizontal);
     progressSlider.setTextBoxStyle (juce::Slider::NoTextBox, true, 0, 0);
     progressSlider.setColour (juce::Slider::backgroundColourId, juce::Colour (SoundXplorerLookAndFeel::bgLight));
-    progressSlider.setColour (juce::Slider::trackColourId, juce::Colour (SoundXplorerLookAndFeel::accentBlue));
+    progressSlider.setColour (juce::Slider::trackColourId, juce::Colour (SoundXplorerLookAndFeel::rausch));
     progressSlider.onValueChange = [this]
     {
         if (progressSlider.isMouseButtonDown())
@@ -33,85 +33,101 @@ TransportBarComponent::TransportBarComponent (AudioPreviewEngine& eng)
         }
     };
     addAndMakeVisible (progressSlider);
-    
+
     // Gain label
     gainLabel.setText ("Gain", juce::dontSendNotification);
-    gainLabel.setFont (juce::Font (12.0f));
-    gainLabel.setColour (juce::Label::textColourId, juce::Colour (SoundXplorerLookAndFeel::textSecondary));
+    gainLabel.setFont (SoundXplorerLookAndFeel::getBookFont (12.0f));
+    gainLabel.setColour (juce::Label::textColourId, juce::Colour (SoundXplorerLookAndFeel::textTertiary));
     addAndMakeVisible (gainLabel);
-    
-    // Gain slider  
+
+    // Gain slider
     gainSlider.setRange (0.0, 2.0, 0.01);
     gainSlider.setValue (1.0);
     gainSlider.setSliderStyle (juce::Slider::LinearHorizontal);
     gainSlider.setTextBoxStyle (juce::Slider::NoTextBox, true, 0, 0);
     gainSlider.onValueChange = [this] { engine.setGain ((float) gainSlider.getValue()); };
     addAndMakeVisible (gainSlider);
-    
+
     // Gain value label
     gainValueLabel.setText ("0.0dB", juce::dontSendNotification);
-    gainValueLabel.setFont (juce::Font (11.0f));
+    gainValueLabel.setFont (SoundXplorerLookAndFeel::getDefaultFont (11.0f));
     gainValueLabel.setColour (juce::Label::textColourId, juce::Colour (SoundXplorerLookAndFeel::textPrimary));
     addAndMakeVisible (gainValueLabel);
-    
+
     // File name label
-    fileNameLabel.setFont (juce::Font (12.0f));
+    fileNameLabel.setFont (SoundXplorerLookAndFeel::getBoldFont (12.0f));
     fileNameLabel.setColour (juce::Label::textColourId, juce::Colour (SoundXplorerLookAndFeel::textPrimary));
     addAndMakeVisible (fileNameLabel);
-    
+
     // Status / message label
-    statusLabel.setFont (juce::Font (11.0f));
-    statusLabel.setColour (juce::Label::textColourId, juce::Colour (SoundXplorerLookAndFeel::textSecondary));
+    statusLabel.setFont (SoundXplorerLookAndFeel::getBookFont (11.0f));
+    statusLabel.setColour (juce::Label::textColourId, juce::Colour (SoundXplorerLookAndFeel::textTertiary));
     addAndMakeVisible (statusLabel);
-    
+
     // DAW sync label (VST only)
     dawSyncLabel.setText ("DAW Sync", juce::dontSendNotification);
-    dawSyncLabel.setFont (juce::Font (11.0f, juce::Font::bold));
-    dawSyncLabel.setColour (juce::Label::textColourId, juce::Colour (SoundXplorerLookAndFeel::accentBlue));
+    dawSyncLabel.setFont (SoundXplorerLookAndFeel::getBoldFont (11.0f));
+    dawSyncLabel.setColour (juce::Label::textColourId, juce::Colour (SoundXplorerLookAndFeel::babu));
     dawSyncLabel.setVisible (dawSyncVisible);
     addAndMakeVisible (dawSyncLabel);
-    
+
     startTimerHz (30);
 }
 
 void TransportBarComponent::paint (juce::Graphics& g)
 {
     g.fillAll (juce::Colour (SoundXplorerLookAndFeel::bgMedium));
-    
-    // Top border
-    g.setColour (juce::Colour (SoundXplorerLookAndFeel::bgLight));
-    g.drawLine (0.0f, 0.0f, (float) getWidth(), 0.0f);
+
+    // Airbnb-style top hairline
+    g.setColour (juce::Colour (SoundXplorerLookAndFeel::foggy).withAlpha (0.15f));
+    g.drawLine (0.0f, 0.5f, (float) getWidth(), 0.5f);
+}
+
+void TransportBarComponent::paintOverChildren (juce::Graphics& g)
+{
+    // Draw vector icons on top of the play/stop buttons
+    {
+        auto b = playButton.getBounds().toFloat().reduced (7.0f);
+        if (engine.isPlaying())
+            SoundXplorerLookAndFeel::drawPauseIcon (g, b, juce::Colour (SoundXplorerLookAndFeel::rausch));
+        else
+            SoundXplorerLookAndFeel::drawPlayIcon (g, b, juce::Colour (SoundXplorerLookAndFeel::rausch));
+    }
+    {
+        auto b = stopButton.getBounds().toFloat().reduced (7.0f);
+        SoundXplorerLookAndFeel::drawStopIcon (g, b, juce::Colour (SoundXplorerLookAndFeel::textSecondary));
+    }
 }
 
 void TransportBarComponent::resized()
 {
     auto bounds = getLocalBounds().reduced (8, 4);
-    
+
     // Left: transport controls
     playButton.setBounds (bounds.removeFromLeft (32).reduced (0, 4));
     bounds.removeFromLeft (4);
     stopButton.setBounds (bounds.removeFromLeft (32).reduced (0, 4));
     bounds.removeFromLeft (8);
-    
+
     // Progress bar
     progressSlider.setBounds (bounds.removeFromLeft (150).reduced (0, 6));
     bounds.removeFromLeft (12);
-    
+
     // File name
     fileNameLabel.setBounds (bounds.removeFromLeft (200));
     bounds.removeFromLeft (8);
-    
+
     // Right side: gain controls
     auto rightArea = bounds;
-    
+
     gainValueLabel.setBounds (rightArea.removeFromRight (50));
     gainSlider.setBounds (rightArea.removeFromRight (120).reduced (0, 6));
     gainLabel.setBounds (rightArea.removeFromRight (40));
-    
+
     // DAW sync label
     if (dawSyncVisible)
         dawSyncLabel.setBounds (rightArea.removeFromRight (80));
-    
+
     statusLabel.setBounds (rightArea);
 }
 
@@ -120,20 +136,21 @@ void TransportBarComponent::timerCallback()
     // Update progress slider
     if (! progressSlider.isMouseButtonDown())
         progressSlider.setValue (engine.getPlaybackPosition(), juce::dontSendNotification);
-    
+
     // Update gain display
     float gainDb = juce::Decibels::gainToDecibels (engine.getGain(), -60.0f);
     gainValueLabel.setText (juce::String (gainDb, 1) + "dB", juce::dontSendNotification);
-    
-    // Update play button state
-    playButton.setButtonText (engine.isPlaying() ? juce::CharPointer_UTF8("\xe2\x8f\xb8") : juce::CharPointer_UTF8("\xe2\x96\xb6"));
-    
+
+    // Repaint to update play/pause vector icon
+    playButton.repaint();
+    repaint (playButton.getBounds());
+
     // Update DAW sync info
     if (dawSyncVisible)
     {
         juce::String syncText = "DAW: " + juce::String (engine.getDawBpm(), 1) + " BPM";
         if (engine.isDawPlaying())
-            syncText += " [Playing]";
+            syncText += juce::String (juce::CharPointer_UTF8(" \xe2\x97\x8f Playing")); // bullet
         dawSyncLabel.setText (syncText, juce::dontSendNotification);
     }
 }

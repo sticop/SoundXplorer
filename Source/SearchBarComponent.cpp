@@ -3,34 +3,41 @@
 
 SearchBarComponent::SearchBarComponent()
 {
-    searchIcon.setText (juce::CharPointer_UTF8("\xf0\x9f\x94\x8d"), juce::dontSendNotification); // magnifying glass emoji
-    searchIcon.setFont (juce::Font (16.0f));
-    searchIcon.setColour (juce::Label::textColourId, juce::Colour (SoundXplorerLookAndFeel::textSecondary));
+    // No emoji — icon drawn in paint()
+    searchIcon.setText ("", juce::dontSendNotification);
     addAndMakeVisible (searchIcon);
-    
+
     searchEditor.setTextToShowWhenEmpty ("What sounds are you looking for?",
-                                         juce::Colour (SoundXplorerLookAndFeel::textSecondary));
-    searchEditor.setFont (juce::Font (15.0f));
-    searchEditor.setColour (juce::TextEditor::backgroundColourId, juce::Colour (SoundXplorerLookAndFeel::bgMedium));
+                                         juce::Colour (SoundXplorerLookAndFeel::textTertiary));
+    searchEditor.setFont (SoundXplorerLookAndFeel::getDefaultFont (15.0f));
+    searchEditor.setColour (juce::TextEditor::backgroundColourId, juce::Colours::transparentBlack);
     searchEditor.setColour (juce::TextEditor::textColourId, juce::Colour (SoundXplorerLookAndFeel::textPrimary));
     searchEditor.setColour (juce::TextEditor::outlineColourId, juce::Colours::transparentBlack);
+    searchEditor.setColour (juce::TextEditor::focusedOutlineColourId, juce::Colours::transparentBlack);
     searchEditor.addListener (this);
     addAndMakeVisible (searchEditor);
 }
 
 void SearchBarComponent::paint (juce::Graphics& g)
 {
-    g.setColour (juce::Colour (SoundXplorerLookAndFeel::bgMedium));
-    g.fillRoundedRectangle (getLocalBounds().toFloat(), 6.0f);
-    
+    auto bounds = getLocalBounds().toFloat();
+
+    // Airbnb-style search pill: dark surface + subtle border, generous rounding
+    g.setColour (juce::Colour (SoundXplorerLookAndFeel::bgCard));
+    g.fillRoundedRectangle (bounds, SoundXplorerLookAndFeel::radiusMedium);
+
     g.setColour (juce::Colour (SoundXplorerLookAndFeel::bgLight));
-    g.drawRoundedRectangle (getLocalBounds().toFloat().reduced (0.5f), 6.0f, 1.0f);
+    g.drawRoundedRectangle (bounds.reduced (0.5f), SoundXplorerLookAndFeel::radiusMedium, 1.0f);
+
+    // Draw search icon (vector)
+    auto iconArea = juce::Rectangle<float> (8.0f, (bounds.getHeight() - 20.0f) * 0.5f, 20.0f, 20.0f);
+    SoundXplorerLookAndFeel::drawSearchIcon (g, iconArea, juce::Colour (SoundXplorerLookAndFeel::textTertiary));
 }
 
 void SearchBarComponent::resized()
 {
     auto bounds = getLocalBounds().reduced (4);
-    searchIcon.setBounds (bounds.removeFromLeft (30));
+    bounds.removeFromLeft (28); // space for icon
     searchEditor.setBounds (bounds);
 }
 

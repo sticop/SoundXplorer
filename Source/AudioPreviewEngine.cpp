@@ -21,7 +21,7 @@ void AudioPreviewEngine::loadAndPlay (const juce::File& file)
     transportSource.stop();
     transportSource.setSource (nullptr);
     readerSource.reset();
-    
+
     auto* reader = formatManager.createReaderFor (file);
     if (reader != nullptr)
     {
@@ -30,7 +30,7 @@ void AudioPreviewEngine::loadAndPlay (const juce::File& file)
         transportSource.setSource (readerSource.get(), 0, nullptr, reader->sampleRate);
         transportSource.setGain (currentGain.load());
         transportSource.start();
-        
+
         if (onPlaybackStarted)
             onPlaybackStarted();
     }

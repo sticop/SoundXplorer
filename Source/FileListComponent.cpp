@@ -20,14 +20,14 @@ SampleFileListComponent::SampleFileListComponent (SampleLibrary& lib)
     
     table.setModel (this);
     table.setMultipleSelectionEnabled (false);
-    table.setRowHeight (28);
+    table.setRowHeight (32);
     table.setColour (juce::ListBox::backgroundColourId, juce::Colour (SoundXplorerLookAndFeel::bgDark));
-    table.setHeaderHeight (28);
+    table.setHeaderHeight (30);
     addAndMakeVisible (table);
     
     // File count label
-    fileCountLabel.setFont (juce::Font (11.0f));
-    fileCountLabel.setColour (juce::Label::textColourId, juce::Colour (SoundXplorerLookAndFeel::textSecondary));
+    fileCountLabel.setFont (SoundXplorerLookAndFeel::getDefaultFont (11.0f));
+    fileCountLabel.setColour (juce::Label::textColourId, juce::Colour (SoundXplorerLookAndFeel::textTertiary));
     addAndMakeVisible (fileCountLabel);
 }
 
@@ -75,10 +75,10 @@ void SampleFileListComponent::paintRowBackground (juce::Graphics& g, int rowNumb
     else if (rowNumber % 2 == 0)
         g.fillAll (juce::Colour (SoundXplorerLookAndFeel::bgDark));
     else
-        g.fillAll (juce::Colour (SoundXplorerLookAndFeel::bgDark).brighter (0.03f));
+        g.fillAll (juce::Colour (SoundXplorerLookAndFeel::bgCard));
         
-    // Bottom line
-    g.setColour (juce::Colour (SoundXplorerLookAndFeel::bgMedium).withAlpha (0.3f));
+    // Bottom divider — Airbnb hairline
+    g.setColour (juce::Colour (SoundXplorerLookAndFeel::bgLight).withAlpha (0.4f));
     g.drawLine (0.0f, (float) height - 0.5f, (float) width, (float) height - 0.5f);
 }
 
@@ -88,52 +88,53 @@ void SampleFileListComponent::paintCell (juce::Graphics& g, int rowNumber, int c
         return;
     
     auto& item = displayedItems.getReference (rowNumber);
-    g.setFont (juce::Font (13.0f));
+    g.setFont (SoundXplorerLookAndFeel::getDefaultFont (13.0f));
     
     switch (columnId)
     {
         case FavoriteColumn:
         {
-            g.setColour (item.isFavorite ? juce::Colour (SoundXplorerLookAndFeel::heartColor) : juce::Colour (SoundXplorerLookAndFeel::textSecondary));
-            g.setFont (juce::Font (14.0f));
-            g.drawText (item.isFavorite ? juce::CharPointer_UTF8("\xe2\x9d\xa4") : juce::CharPointer_UTF8("\xe2\x99\xa1"), 
-                         0, 0, width, height, juce::Justification::centred);
+            auto heartArea = juce::Rectangle<float> ((width - 16.0f) * 0.5f, (height - 16.0f) * 0.5f, 16.0f, 16.0f);
+            SoundXplorerLookAndFeel::drawHeartIcon (g, heartArea,
+                item.isFavorite ? juce::Colour (SoundXplorerLookAndFeel::heartColor)
+                                : juce::Colour (SoundXplorerLookAndFeel::textTertiary),
+                item.isFavorite);
             break;
         }
         case NameColumn:
         {
-            g.setColour (juce::Colour (SoundXplorerLookAndFeel::accentOrange));
-            g.drawText (item.name, 8, 0, width - 16, height, juce::Justification::centredLeft, true);
+            g.setColour (juce::Colour (SoundXplorerLookAndFeel::rausch));
+            g.setFont (SoundXplorerLookAndFeel::getDefaultFont (13.0f));
+            g.drawText (item.name, 10, 0, width - 20, height, juce::Justification::centredLeft, true);
             break;
         }
         case TypeColumn:
         {
-            g.setColour (juce::Colour (SoundXplorerLookAndFeel::textSecondary));
-            // Draw type icon
-            juce::String typeSymbol;
+            auto iconArea = juce::Rectangle<float> ((width - 16.0f) * 0.5f, (height - 16.0f) * 0.5f, 16.0f, 16.0f);
             if (item.type == "Loop")
-                typeSymbol = juce::CharPointer_UTF8("\xe2\x86\xbb"); // loop symbol  
+                SoundXplorerLookAndFeel::drawLoopIcon (g, iconArea, juce::Colour (SoundXplorerLookAndFeel::textSecondary));
             else
-                typeSymbol = juce::CharPointer_UTF8("\xe2\x86\x92"); // arrow
-            g.drawText (typeSymbol, 0, 0, width, height, juce::Justification::centred);
+                SoundXplorerLookAndFeel::drawArrowRightIcon (g, iconArea, juce::Colour (SoundXplorerLookAndFeel::textSecondary));
             break;
         }
         case BpmColumn:
         {
             g.setColour (juce::Colour (SoundXplorerLookAndFeel::textPrimary));
+            g.setFont (SoundXplorerLookAndFeel::getBookFont (12.0f));
             if (item.bpm > 0.0)
                 g.drawText (juce::String ((int) item.bpm), 0, 0, width, height, juce::Justification::centred);
             else
-                g.drawText ("-", 0, 0, width, height, juce::Justification::centred);
+                g.drawText (juce::CharPointer_UTF8("\xe2\x80\x93"), 0, 0, width, height, juce::Justification::centred);
             break;
         }
         case KeyColumn:
         {
             g.setColour (juce::Colour (SoundXplorerLookAndFeel::textPrimary));
+            g.setFont (SoundXplorerLookAndFeel::getBookFont (12.0f));
             if (item.key.isNotEmpty())
                 g.drawText (item.key, 0, 0, width, height, juce::Justification::centred);
             else
-                g.drawText ("-", 0, 0, width, height, juce::Justification::centred);
+                g.drawText (juce::CharPointer_UTF8("\xe2\x80\x93"), 0, 0, width, height, juce::Justification::centred);
             break;
         }
         case TagsColumn:
@@ -153,23 +154,22 @@ void SampleFileListComponent::paintCell (juce::Graphics& g, int rowNumber, int c
 
 void SampleFileListComponent::drawTag (juce::Graphics& g, const juce::String& tag, juce::Rectangle<int>& area, juce::Colour colour)
 {
-    auto font = juce::Font (10.0f, juce::Font::bold);
+    auto font = SoundXplorerLookAndFeel::getBoldFont (10.0f);
     g.setFont (font);
     
-    int tagWidth = font.getStringWidth (tag) + 12;
-    int tagHeight = area.getHeight() - 4;
+    juce::GlyphArrangement glyphs;
+    glyphs.addLineOfText (font, tag, 0.0f, 0.0f);
+    int tagWidth = (int) std::ceil (glyphs.getBoundingBox (0, -1, false).getWidth()) + 14;
     
     if (area.getWidth() < tagWidth + 4)
         return;
     
-    auto tagBounds = area.removeFromLeft (tagWidth).reduced (0, 2);
-    area.removeFromLeft (4); // spacing
+    auto tagBounds = area.removeFromLeft (tagWidth).reduced (0, 3);
+    area.removeFromLeft (5); // spacing
     
-    g.setColour (colour.withAlpha (0.2f));
-    g.fillRoundedRectangle (tagBounds.toFloat(), 3.0f);
-    
-    g.setColour (colour);
-    g.drawRoundedRectangle (tagBounds.toFloat(), 3.0f, 1.0f);
+    // Airbnb-style pill tag: tinted fill, no border
+    g.setColour (colour.withAlpha (0.15f));
+    g.fillRoundedRectangle (tagBounds.toFloat(), SoundXplorerLookAndFeel::radiusSmall * 0.6f);
     
     g.setColour (colour);
     g.drawText (tag, tagBounds, juce::Justification::centred);

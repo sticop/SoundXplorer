@@ -27,13 +27,13 @@ void SoundXplorerProcessor::releaseResources()
 void SoundXplorerProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer&)
 {
     juce::ScopedNoDenormals noDenormals;
-    
+
     auto totalNumOutputChannels = getTotalNumOutputChannels();
-    
+
     // Clear any output channels that don't have input
     for (auto i = getTotalNumInputChannels(); i < totalNumOutputChannels; ++i)
         buffer.clear (i, 0, buffer.getNumSamples());
-    
+
 #if SOUNDXPLORER_IS_VST
     // Get DAW transport info
     if (auto* playHead = getPlayHead())
@@ -43,15 +43,15 @@ void SoundXplorerProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce
         {
             if (auto bpm = position->getBpm())
                 previewEngine.setDawBpm (*bpm);
-            
+
             previewEngine.setDawPlaying (position->getIsPlaying());
-            
+
             if (auto timeInSamples = position->getTimeInSamples())
                 previewEngine.setDawPositionSamples (*timeInSamples);
         }
     }
 #endif
-    
+
     // Get audio from preview engine
     juce::AudioSourceChannelInfo info (&buffer, 0, buffer.getNumSamples());
     previewEngine.getTransportSource().getNextAudioBlock (info);

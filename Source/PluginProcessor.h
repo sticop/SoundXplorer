@@ -41,8 +41,8 @@ public:
 private:
     SampleLibrary sampleLibrary;
     AudioPreviewEngine previewEngine;
-    
+
     double currentSampleRate = 44100.0;
-    
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SoundXplorerProcessor)
 };

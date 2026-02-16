@@ -30,26 +30,26 @@ public:
     void addLibraryFolder (const juce::File& folder);
     void removeLibraryFolder (const juce::File& folder);
     void refreshLibraries();
-    
+
     const juce::Array<juce::File>& getLibraryFolders() const { return libraryFolders; }
-    
+
     // Sample access
     const juce::Array<SampleItem>& getAllSamples() const { return allSamples; }
     juce::Array<SampleItem> getFilteredSamples (const juce::String& searchQuery,
                                                  const juce::StringArray& activeTags,
                                                  bool favoritesOnly) const;
-    
+
     // Favorites
     void toggleFavorite (const juce::File& file);
     bool isFavorite (const juce::File& file) const;
-    
+
     // Tags
     juce::StringArray getAllTags() const;
-    
+
     // Persistence
     void saveState();
     void loadState();
-    
+
     int getTotalFileCount() const { return allSamples.size(); }
     float getAnalysisProgress() const { return analysisProgress.load(); }
 
@@ -60,16 +60,16 @@ private:
     juce::String guessKeyFromFilename (const juce::String& name);
     double guessBpmFromFilename (const juce::String& name);
     juce::StringArray guessTagsFromPath (const juce::File& file);
-    
+
     juce::Array<juce::File> libraryFolders;
     juce::Array<SampleItem> allSamples;
     juce::StringArray favoriteFiles;
-    
+
     std::atomic<float> analysisProgress { 0.0f };
-    
+
     juce::File getSettingsFile() const;
-    
+
     juce::AudioFormatManager formatManager;
-    
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SampleLibrary)
 };
